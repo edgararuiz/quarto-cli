@@ -767,7 +767,7 @@ export function isStandaloneFormat(format: Format) {
 export function resolveFormatsFromMetadata(
   metadata: Metadata,
   includeDir: string,
-  formats?: string[],
+  formats: string[],
   flags?: RenderFlags,
 ): Record<string, Format> {
   // Read any included metadata files and merge in and metadata from the command
@@ -788,25 +788,19 @@ export function resolveFormatsFromMetadata(
     formats = formatKeys(allMetadata);
   }
 
-  // provide html if there was no format info
+  // provide a default format
   if (formats.length === 0) {
-    formats.push("html");
+    formats.push(baseFormat.pandoc.to || baseFormat.pandoc.writer || "html");
   }
 
   // determine render formats
   const renderFormats: string[] = [];
-  if (flags?.to) {
-    if (flags.to === "all") {
-      renderFormats.push(...formats);
-    } else {
-      renderFormats.push(...flags.to.split(","));
-    }
-  } else if (formats.length > 0) {
+  if (flags?.to === undefined || flags?.to === "all") {
+    renderFormats.push(...formats);
+  } else if (flags?.to === "default") {
     renderFormats.push(formats[0]);
   } else {
-    renderFormats.push(
-      baseFormat.pandoc.to || baseFormat.pandoc.writer || "html",
-    );
+    renderFormats.push(...flags.to.split(","));
   }
 
   const resolved: Record<string, Format> = {};
@@ -868,7 +862,10 @@ export function formatKeys(metadata: Metadata): string[] {
   if (typeof metadata[kMetadataFormat] === "string") {
     return [metadata[kMetadataFormat] as string];
   } else if (metadata[kMetadataFormat] instanceof Object) {
-    return Object.keys(metadata[kMetadataFormat] as Metadata);
+    return Object.keys(metadata[kMetadataFormat] as Metadata).filter((key) => {
+      const format = (metadata[kMetadataFormat] as Metadata)[key];
+      return format !== null && format !== false;
+    });
   } else {
     return [];
   }
@@ -917,13 +914,23 @@ async function resolveFormats(
   );
   const inputMetadata = target.metadata;
 
-  // determine order of formats
+  // determine formats
+  let formats: string[] = [];
+  const projFormatKeys = formatKeys(projMetadata);
+  const inputFormatKeys = formatKeys(inputMetadata);
   const projType = projectType(project?.config?.project?.[kProjectType]);
-  const formats = projType.projectFormatsOnly
-    ? formatKeys(projMetadata)
-    : ld.uniq(
-      formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
-    );
+  if (projType.projectFormatsOnly) {
+    // if the project specifies that only project formats are
+    // valid then use the project formats
+    formats = projFormatKeys;
+  } else if (inputFormatKeys.some((key) => !projFormatKeys.includes(key))) {
+    // if the input metadata has a format that is NOT in the project
+    // then use it's formats (and ignore the project)
+    formats = inputFormatKeys;
+    // otherwise use the project formats
+  } else {
+    formats = projFormatKeys;
+  }
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(

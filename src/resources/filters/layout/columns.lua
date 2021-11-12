@@ -74,9 +74,8 @@ function renderDivColumn(el)
         local figOrTable = false
         for j, contentEl in ipairs(el.content) do
 
-
           -- wrap figures
-          local figure = discoverFigure(contentEl, true)
+          local figure = discoverFigure(contentEl, false)
           if figure ~= nil then
             -- just ensure the classes are - they will be resolved
             -- when the latex figure is rendered
@@ -140,6 +139,14 @@ function hasMarginColumn(el)
   end
 end
 
+function hasMarginCaption(el)
+  if el.attr ~= nil and el.attr.classes ~= nil then
+    return tcontains(el.attr.classes, 'margin-caption')
+  else
+    return false
+  end
+end
+
 function noteHasColumns() 
   layoutState.hasColumns = true
 end
@@ -188,11 +195,16 @@ function removeCaptionClasses(el)
 end
 
 function resolveCaptionClasses(el)
-  return el.attr.classes:filter(isCaptionClass)
+  local filtered = el.attr.classes:filter(isCaptionClass)
+  if #filtered > 0 then
+    return {'margin-caption'}
+  else
+    return {}
+  end
 end
 
 function isCaptionClass(clz)
-  return clz == kSideCaptionClass
+  return clz == 'caption-margin'
 end
 
 function isColumnClass(clz) 

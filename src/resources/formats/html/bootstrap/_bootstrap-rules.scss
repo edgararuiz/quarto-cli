@@ -170,7 +170,7 @@ body.docked {
 }
 
 .column-page-right {
-  grid-column: body-start / page-end;
+  grid-column: body-content-start / page-end;
   figcaption {
     text-align: right;
   }
@@ -234,7 +234,6 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
-  .margin-ref,
   .margin-caption,
   div.aside,
   aside,
@@ -248,11 +247,15 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
   }
+
+  .no-row-height {
+    height: 1em;
+    overflow: visible;
+  }
 }
 
 @include media-breakpoint-down(lg) {
-  .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -265,11 +268,15 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
   }
+
+  .no-row-height {
+    height: 1em;
+    overflow: visible;
+  }
 }
 
 @include media-breakpoint-down(md) {
-  .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -282,6 +289,11 @@ img.img-fluid.column-screen-inset-shaded {
     grid-column: body-content-start / body-content-end;
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
+  }
+
+  .no-row-height {
+    height: initial;
+    overflow: initial;
   }
 }
 
@@ -338,8 +350,7 @@ caption,
 }
 
 .column-margin figcaption,
-.margin-ref,
-.caption-margin,
+.margin-caption,
 div.aside,
 aside,
 .column-margin {
@@ -348,7 +359,8 @@ aside,
 }
 
 .margin-item-padding {
-  padding-bottom: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 // Caption and footnotes
