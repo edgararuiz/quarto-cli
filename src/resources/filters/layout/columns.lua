@@ -14,6 +14,15 @@ function columns()
       return el      
     end,
 
+    Span = function(el)
+      -- a span that should be placed in the margin
+      if isLatexOutput() and hasMarginColumn(el) then 
+        tprepend(el.content, {latexBeginSidenote(false)})
+        tappend(el.content, {latexEndSidenote(el, false)})
+        return el
+      end
+    end,
+
     RawBlock = function(el) 
       -- Implements support for raw <aside> tags and replaces them with
       -- our raw latex representation
@@ -85,7 +94,7 @@ function renderDivColumn(el)
             -- wrap table divs
             latexWrapEnvironment(contentEl, latexTableEnv(el), false)
             figOrTable = true
-          elseif contentEl.attr ~= undefined and hasFigureRef(contentEl) then
+          elseif contentEl.attr ~= nil and hasFigureRef(contentEl) then
             -- wrap figure divs
             latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
             figOrTable = true
@@ -96,8 +105,9 @@ function renderDivColumn(el)
           processOtherContent(el.content)
         end
       else
+
         -- this is not a code cell so process it
-        if el.attr ~= undefined then
+        if el.attr ~= nil then
           if hasTableRef(el) then
             latexWrapEnvironment(el, latexTableEnv(el), false)
           elseif hasFigureRef(el) then
